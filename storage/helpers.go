@@ -16,6 +16,6 @@ func PeriodicSend(c *websocket.Conn) {
 		if err != nil {
 			log.Println("Write periodic message error:", err)
 			return
-		}	
+		}
 	}
 }

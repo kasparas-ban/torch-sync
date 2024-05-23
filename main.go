@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 	"torch/torch-sync/config"
+	"torch/torch-sync/middleware"
 	"torch/torch-sync/pkg"
 	"torch/torch-sync/storage"
 	"torch/torch-sync/websockets"
@@ -61,10 +62,12 @@ func run(env config.EnvVars) (func(), error) {
 func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// init storage
 	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", env.DB_USERNAME, env.DB_PASSWORD, env.DB_HOSTNAME, env.DB_PORT, env.DB_NAME)
-	db, err := storage.InitDB(connStr, 30 * time.Second)
+	db, err := storage.InitDB(connStr, 30*time.Second)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	middleware.InitClerk(env)
 
 	// create fiber app
 	app := fiber.New()
@@ -73,7 +76,7 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	app.Use("/sync", websockets.WebsocketsMiddleware)
 
 	// add health check
-	app.Get("/health", func (c *fiber.Ctx) error {
+	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 

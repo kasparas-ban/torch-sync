@@ -18,7 +18,7 @@ func InitDB(dsn string, timeout time.Duration) (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-	  return nil, err
+		return nil, err
 	}
 
 	// Ping the database to verify the connection

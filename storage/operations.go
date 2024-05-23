@@ -10,7 +10,7 @@ import (
 
 type Op struct {
 	Cmd  string `json:"cmd"` // INSERT, UPDATE or DELETE
-	Data Item    `json:"data"`
+	Data Item   `json:"data"`
 }
 
 type Msg struct {

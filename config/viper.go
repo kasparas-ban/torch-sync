@@ -8,24 +8,26 @@ import (
 )
 
 type EnvVars struct {
-	PORT string `mapstructure:"PORT"`
-	DB_USERNAME string `mapstructure:"DB_USERNAME"`
-	DB_PASSWORD string `mapstructure:"DB_PASSWORD"`
-	DB_HOSTNAME string `mapstructure:"DB_HOSTNAME"`
-	DB_PORT string `mapstructure:"DB_PORT"`
-	DB_NAME string `mapstructure:"DB_NAME"`
+	PORT             string `mapstructure:"PORT"`
+	DB_USERNAME      string `mapstructure:"DB_USERNAME"`
+	DB_PASSWORD      string `mapstructure:"DB_PASSWORD"`
+	DB_HOSTNAME      string `mapstructure:"DB_HOSTNAME"`
+	DB_PORT          string `mapstructure:"DB_PORT"`
+	DB_NAME          string `mapstructure:"DB_NAME"`
+	CLERK_SECRET_KEY string `mapstructure:"CLERK_SECRET_KEY"`
 }
 
 func LoadConfig() (config EnvVars, err error) {
 	env := os.Getenv("GO_ENV")
 	if env == "production" {
 		return EnvVars{
-			PORT: os.Getenv("PORT"),
-			DB_USERNAME: os.Getenv("DB_USERNAME"),
-			DB_PASSWORD: os.Getenv("DB_PASSWORD"),
-			DB_HOSTNAME: os.Getenv("DB_HOSTNAME"),
-			DB_PORT: os.Getenv("DB_PORT"),
-			DB_NAME: os.Getenv("DB_NAME"),
+			PORT:             os.Getenv("PORT"),
+			DB_USERNAME:      os.Getenv("DB_USERNAME"),
+			DB_PASSWORD:      os.Getenv("DB_PASSWORD"),
+			DB_HOSTNAME:      os.Getenv("DB_HOSTNAME"),
+			DB_PORT:          os.Getenv("DB_PORT"),
+			DB_NAME:          os.Getenv("DB_NAME"),
+			CLERK_SECRET_KEY: os.Getenv("CLERK_SECRET_KEY"),
 		}, nil
 	}
 
@@ -47,7 +49,7 @@ func LoadConfig() (config EnvVars, err error) {
 		err = errors.New("PORT is required")
 		return
 	}
-	
+
 	if config.DB_USERNAME == "" {
 		err = errors.New("DB_USERNAME is required")
 		return
@@ -70,6 +72,11 @@ func LoadConfig() (config EnvVars, err error) {
 
 	if config.DB_NAME == "" {
 		err = errors.New("DB_NAME is required")
+		return
+	}
+
+	if config.CLERK_SECRET_KEY == "" {
+		err = errors.New("CLERK_SECRET_KEY is required")
 		return
 	}
 
