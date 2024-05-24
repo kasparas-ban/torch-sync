@@ -281,6 +281,7 @@ CREATE TABLE IF NOT EXISTS items (
   user_id VARCHAR(12) NOT NULL REFERENCES users(user_id),
   title TEXT NOT NULL,
   type_ TEXT CHECK (type_ in ('DREAM', 'GOAL', 'TASK')) NOT NULL,
+  status_ TEXT CHECK (status_ in ('ACTIVE', 'COMPLETED', 'ARCHIVED')) DEFAULT 'ACTIVE',
   target_date DATE,
   priority_ TEXT CHECK (priority_ in ('LOW', 'MEDIUM', 'HIGH')),
   duration INTEGER,
@@ -290,7 +291,6 @@ CREATE TABLE IF NOT EXISTS items (
   rec_progress INTEGER,
   rec_updated_at TIMESTAMP DEFAULT NULL,
   parent_id VARCHAR(12),
-  status_ TEXT CHECK (status_ in ('ACTIVE', 'COMPLETED', 'ARCHIVED')) DEFAULT 'ACTIVE',
   updated_at TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -322,7 +322,6 @@ DECLARE
     msg JSONB := '{}'::JSONB;
     diffs JSONB := '{}'::JSONB;
     field TEXT;
-    value TEXT;
     new_value JSONB;
     old_value JSONB;
 BEGIN
