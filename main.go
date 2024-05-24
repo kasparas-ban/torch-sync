@@ -72,7 +72,7 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// create fiber app
 	app := fiber.New()
 
-	// TODO: add auth middleware
+	app.Use(middleware.AuthMiddleware)
 	app.Use("/sync", websockets.WebsocketsMiddleware)
 
 	// add health check

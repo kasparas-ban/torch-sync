@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/contrib/websocket"
 )
 
-const NOTIFY_CHANNEL_NAME = "items_update__4bax1usfu2uk"
-
 func WebsocketsMiddleware(c *fiber.Ctx) error {
 	if websocket.IsWebSocketUpgrade(c) {
 		return c.Next()
@@ -19,6 +17,8 @@ func WebsocketsMiddleware(c *fiber.Ctx) error {
 }
 
 func SyncHandler(c *websocket.Conn) {
+	userID := c.Query("userID")
+
 	n := storage.NewNotifier()
-	n.StartListening(c, NOTIFY_CHANNEL_NAME)
+	n.StartListening(c, "items_update__"+userID)
 }
