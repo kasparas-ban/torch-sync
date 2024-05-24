@@ -50,6 +50,9 @@ func ProcessCmd(msg []byte, userID string) error {
 	case "INSERT":
 		err = insertRecord(o.Data, userID)
 		return err
+	case "DELETE":
+		err = deleteRecord(o.Data.ItemID, userID)
+		return err
 	default:
 		return errors.New("cmd not found")
 	}
@@ -103,6 +106,35 @@ func updateRecord(item Item, userID string) error {
 
 	// Execute UPDATE command
 	_, err = tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit the transaction, which will automatically reset the custom setting
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteRecord(itemID string, userID string) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Disable the trigger for this transaction
+	_, err = tx.Exec("SET LOCAL custom.disable_trigger = 'true'")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Execute DELETE command
+	_, err = tx.Exec("DELETE FROM items WHERE user_id = $1 AND item_id = $2", userID, itemID)
 	if err != nil {
 		tx.Rollback()
 		return err
