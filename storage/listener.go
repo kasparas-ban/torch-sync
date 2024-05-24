@@ -63,6 +63,8 @@ func (n *notifier) handleDBConn(channelName string) {
 }
 
 func (n *notifier) handleClientConn(c *websocket.Conn) {
+	userID := c.Query("userID")
+
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
@@ -71,7 +73,7 @@ func (n *notifier) handleClientConn(c *websocket.Conn) {
 		}
 		log.Printf("Recv: %s \n", msg)
 
-		err = ProcessCmd(msg)
+		err = ProcessCmd(msg, userID)
 		if err != nil {
 			log.Printf("Command failed: %v\n", err)
 		}
