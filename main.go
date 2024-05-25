@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 	"torch/torch-sync/config"
+	"torch/torch-sync/handlers"
 	"torch/torch-sync/middleware"
 	"torch/torch-sync/pkg"
 	"torch/torch-sync/storage"
-	"torch/torch-sync/websockets"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -73,14 +73,16 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	app := fiber.New()
 
 	app.Use(middleware.AuthMiddleware)
-	app.Use("/sync", websockets.WebsocketsMiddleware)
+	app.Use("/sync", middleware.WebsocketsMiddleware)
 
 	// add health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
-	app.Get("/sync", websocket.New(websockets.SyncHandler))
+	app.Get("/sync", websocket.New(handlers.SyncHandler))
+	app.Get("/items", handlers.ItemsHandler)
+	app.Get("/user", handlers.UserHandler)
 
 	return app, func() {
 		storage.CloseDB(db)

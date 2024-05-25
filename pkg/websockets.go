@@ -1,4 +1,4 @@
-package websockets
+package pkg
 
 import "syscall"
 

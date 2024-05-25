@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"torch/torch-sync/types"
 )
 
 type Op struct {
@@ -15,24 +14,6 @@ type Op struct {
 
 type Msg struct {
 	Item
-}
-
-type Item struct {
-	ItemID       string           `json:"itemID"`
-	Title        types.NullString `json:"title"`
-	ItemType     types.NullString `json:"itemType"`
-	Status       types.NullString `json:"status"`
-	TargetDate   types.NullString `json:"targetDate"`
-	Priority     types.NullString `json:"priority"`
-	Duration     types.NullInt64  `json:"duration"`
-	TimeSpent    types.NullInt64  `json:"timeSpent"`
-	RecTimes     types.NullInt64  `json:"recTimes"`
-	RecPeriod    types.NullString `json:"recPeriod"`
-	RecProgress  types.NullInt64  `json:"recProgress"`
-	RecUpdatedAt types.NullString `json:"recUpdatedAt"`
-	ParentID     types.NullString `json:"parentID"`
-	UpdatedAt    types.NullString `json:"updatedAt"`
-	CreatedAt    types.NullString `json:"createdAt"`
 }
 
 func ProcessCmd(msg []byte, userID string) error {
