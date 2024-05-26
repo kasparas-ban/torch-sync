@@ -10,6 +10,7 @@ import (
 )
 
 type notifier struct {
+	userID string
 	// DB connection
 	listener *pq.Listener
 	dbFailed chan error
@@ -20,10 +21,11 @@ type notifier struct {
 var MIN_RECONN = 10 * time.Second
 var MAX_RECONN = 30 * time.Second
 
-func NewNotifier() *notifier {
+func NewNotifier(userID string) *notifier {
 	l := pq.NewListener(DSN, MIN_RECONN, MAX_RECONN, handleListenerError)
 
 	n := &notifier{
+		userID:       userID,
 		dbFailed:     make(chan error, 2),
 		clientFailed: make(chan error, 2),
 		listener:     l,
@@ -63,17 +65,14 @@ func (n *notifier) handleDBConn(channelName string) {
 }
 
 func (n *notifier) handleClientConn(c *websocket.Conn) {
-	userID := c.Query("userID")
-
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
 			n.clientFailed <- err
 			break
 		}
-		log.Printf("Recv: %s \n", msg)
 
-		err = ProcessCmd(msg, userID)
+		err = ProcessCmd(msg, n.userID)
 		if err != nil {
 			log.Printf("Command failed: %v\n", err)
 		}

@@ -14,6 +14,6 @@ func SyncHandler(c *websocket.Conn) {
 		return
 	}
 
-	n := storage.NewNotifier()
+	n := storage.NewNotifier(userID)
 	n.StartListening(c, "items_update__"+userID)
 }

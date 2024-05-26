@@ -4,10 +4,10 @@ Sync torch database with the client. Works by listening for PostgreSQL notificat
 
 ## Connecting to the server
 
-Add `userID` as a query parameter to the sync endpoint.
+Establish a websocket connection to the following address
 
 ```
-ws://localhost:8000/sync?userID=123454567
+ws://localhost:8000/sync
 ```
 
 ## Messsaging Protocol
@@ -28,12 +28,12 @@ From server to client
 
 ```json
 {
-	"op": "UPDATE",
-	"itemID": "absjfdnfds35m21",
-	"diff": {
-		"title": "New Task",
-		"updatedAt": "2023-04-05T0503"
-	}
+  "op": "UPDATE",
+  "itemID": "absjfdnfds35m21",
+  "diff": {
+    "title": "New Task",
+    "updatedAt": "2023-04-05T0503"
+  }
 }
 ```
 
