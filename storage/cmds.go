@@ -141,7 +141,7 @@ func buildUpdateQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Status.Valid {
-		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argID))
+		setClauses = append(setClauses, fmt.Sprintf("status_ = $%d", argID))
 		args = append(args, item.Status.String)
 		argID++
 	}
@@ -151,7 +151,7 @@ func buildUpdateQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Priority.Valid {
-		setClauses = append(setClauses, fmt.Sprintf("priority = $%d", argID))
+		setClauses = append(setClauses, fmt.Sprintf("priority_ = $%d", argID))
 		args = append(args, item.Priority.String)
 		argID++
 	}
@@ -215,6 +215,12 @@ func buildInsertQuery(item Item, userID string) (string, []interface{}) {
 	args = append(args, userID)
 	argID++
 
+	if item.ItemType.Valid {
+		setColName = append(setColName, "type_")
+		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+		args = append(args, item.ItemType.String)
+		argID++
+	}
 	if item.Title.Valid {
 		setColName = append(setColName, "title")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
@@ -222,68 +228,67 @@ func buildInsertQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Status.Valid {
-		setColName = append(setColName, fmt.Sprintf("status = $%d", argID))
+		setColName = append(setColName, "status_")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.Status.String)
 		argID++
 	}
 	if item.TargetDate.Valid {
-		setColName = append(setColName, fmt.Sprintf("target_date = $%d", argID))
+		setColName = append(setColName, "target_date")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.TargetDate.String)
 		argID++
 	}
 	if item.Priority.Valid {
-		setColName = append(setColName, fmt.Sprintf("priority = $%d", argID))
+		setColName = append(setColName, "priority_")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.Priority.String)
 		argID++
 	}
 	if item.Duration.Valid {
-		setColName = append(setColName, fmt.Sprintf("duration = $%d", argID))
+		setColName = append(setColName, "duration")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.Duration.Int64)
 		argID++
 	}
 	if item.TimeSpent.Valid {
-		setColName = append(setColName, fmt.Sprintf("time_spent = $%d", argID))
+		setColName = append(setColName, "time_spent")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.TimeSpent.Int64)
 		argID++
 	}
 	if item.RecTimes.Valid {
-		setColName = append(setColName, fmt.Sprintf("rec_times = $%d", argID))
+		setColName = append(setColName, "rec_times")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.RecTimes.Int64)
 		argID++
 	}
 	if item.RecPeriod.Valid {
-		setColName = append(setColName, fmt.Sprintf("rec_period = $%d", argID))
+		setColName = append(setColName, "rec_period")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.RecPeriod.String)
 		argID++
 	}
 	if item.RecProgress.Valid {
-		setColName = append(setColName, fmt.Sprintf("rec_progress = $%d", argID))
+		setColName = append(setColName, "rec_progress")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.RecProgress.Int64)
 		argID++
 	}
 	if item.RecUpdatedAt.Valid {
-		setColName = append(setColName, fmt.Sprintf("rec_updated_at = $%d", argID))
+		setColName = append(setColName, "rec_updated_at")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.RecUpdatedAt.String)
 		argID++
 	}
 	if item.ParentID.Valid {
-		setColName = append(setColName, fmt.Sprintf("parent_id = $%d", argID))
+		setColName = append(setColName, "parent_id")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.ParentID.String)
 		argID++
 	}
 
-	query := fmt.Sprintf("INSERT INTO items (%s) VALUES (%v) WHERE user_id = $%d", strings.Join(setColName, ","), strings.Join(cmdArgs, ","), argID)
-	args = append(args, userID)
+	query := fmt.Sprintf("INSERT INTO items (%s) VALUES (%v)", strings.Join(setColName, ","), strings.Join(cmdArgs, ","))
 
 	return query, args
 }

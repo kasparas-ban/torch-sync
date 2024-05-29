@@ -353,7 +353,7 @@ BEGIN
   	   -- if INSERT return inserted record
    IF TG_OP = 'INSERT' THEN
    		msg := jsonb_set(msg, '{item_id}', to_jsonb(NEW.*) -> 'item_id');
-   		msg := jsonb_set(msg, '{diffs}', row_to_json(NEW));
+   		msg := jsonb_set(msg, '{diffs}', to_jsonb(NEW));
    		PERFORM pg_notify(CONCAT('items_update__', NEW.user_id), msg::text);
    END IF;
   
