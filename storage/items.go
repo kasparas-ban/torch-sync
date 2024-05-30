@@ -24,8 +24,8 @@ type Item struct {
 
 func GetAllItemsByUser(userID string) ([]Item, error) {
 	rows, err := DB.Query(`
-		SELECT item_id, title, type_, status_, target_date, 
-		priority_, duration, time_spent, rec_times, rec_period, 
+		SELECT item_id, title, item_type, status, target_date, 
+		priority, duration, time_spent, rec_times, rec_period, 
 		rec_progress, rec_updated_at, parent_id, updated_at, 
 		created_at 
 		FROM items WHERE user_id = $1`, userID)

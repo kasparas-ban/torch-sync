@@ -141,7 +141,7 @@ func buildUpdateQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Status.Valid {
-		setClauses = append(setClauses, fmt.Sprintf("status_ = $%d", argID))
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argID))
 		args = append(args, item.Status.String)
 		argID++
 	}
@@ -151,7 +151,7 @@ func buildUpdateQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Priority.Valid {
-		setClauses = append(setClauses, fmt.Sprintf("priority_ = $%d", argID))
+		setClauses = append(setClauses, fmt.Sprintf("priority = $%d", argID))
 		args = append(args, item.Priority.String)
 		argID++
 	}
@@ -216,7 +216,7 @@ func buildInsertQuery(item Item, userID string) (string, []interface{}) {
 	argID++
 
 	if item.ItemType.Valid {
-		setColName = append(setColName, "type_")
+		setColName = append(setColName, "item_type")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.ItemType.String)
 		argID++
@@ -228,7 +228,7 @@ func buildInsertQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Status.Valid {
-		setColName = append(setColName, "status_")
+		setColName = append(setColName, "status")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.Status.String)
 		argID++
@@ -240,7 +240,7 @@ func buildInsertQuery(item Item, userID string) (string, []interface{}) {
 		argID++
 	}
 	if item.Priority.Valid {
-		setColName = append(setColName, "priority_")
+		setColName = append(setColName, "priority")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
 		args = append(args, item.Priority.String)
 		argID++

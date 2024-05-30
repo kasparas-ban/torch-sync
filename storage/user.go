@@ -20,7 +20,7 @@ type User struct {
 func GetUserByClerkID(clerkID string) (User, error) {
 	var user User
 	err := DB.QueryRow(`
-		SELECT u.user_id, u.clerk_id, u.username, u.email, u.birthday, u.gender, c.country_code, u.city, u.description_, u.focus_time, u.updated_at, u.created_at
+		SELECT u.user_id, u.clerk_id, u.username, u.email, u.birthday, u.gender, c.country_code, u.city, u.description, u.focus_time, u.updated_at, u.created_at
 		FROM users u
 		LEFT JOIN countries c ON u.country_id = c.country_id
 		WHERE u.clerk_id = $1
@@ -36,7 +36,7 @@ func GetUserByClerkID(clerkID string) (User, error) {
 func GetUser(userID string) (User, error) {
 	var user User
 	err := DB.QueryRow(`
-		SELECT u.user_id, u.clerk_id, u.username, u.email, u.birthday, u.gender, c.country_code, u.city, u.description_, u.focus_time, u.updated_at, u.created_at
+		SELECT u.user_id, u.clerk_id, u.username, u.email, u.birthday, u.gender, c.country_code, u.city, u.description, u.focus_time, u.updated_at, u.created_at
 		FROM users u
 		LEFT JOIN countries c ON u.country_id = c.country_id
 		WHERE u.user_id = $1
