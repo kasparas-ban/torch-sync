@@ -292,10 +292,22 @@ CREATE TABLE IF NOT EXISTS items (
   rec_updated_at TIMESTAMP DEFAULT NULL,
   parent_id VARCHAR(12),
   updated_at TIMESTAMP DEFAULT NOW(),
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  --- Clocks
+  title__c BIGINT NOT NULL DEFAULT 0,
+  status__c BIGINT NOT NULL DEFAULT 0,
+  target_date__c BIGINT NOT NULL DEFAULT 0,
+  priority__c BIGINT NOT NULL DEFAULT 0,
+  duration__c BIGINT NOT NULL DEFAULT 0,
+  time_spent__c BIGINT NOT NULL DEFAULT 0,
+  rec_times__c BIGINT NOT NULL DEFAULT 0,
+  rec_period__c BIGINT NOT NULL DEFAULT 0,
+  rec_progress__c BIGINT NOT NULL DEFAULT 0,
+  parent_id__c BIGINT NOT NULL DEFAULT 0,
+  item__c BIGINT NOT NULL DEFAULT 0
 );
 
--- Triggers
+-- Update trigger
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -304,15 +316,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER set_timestamp
+CREATE TRIGGER set_timestamp_users
 BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER set_timestamp
+CREATE TRIGGER set_timestamp_items
 BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
+
+-- Clock trigger
+CREATE OR REPLACE FUNCTION update_item_clock()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.item__c = OLD.item__c + 1;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_item_clock
+AFTER UPDATE ON items
+FOR EACH ROW
+EXECUTE FUNCTION update_item_clock();
 
 -- Notify trigger
 ALTER DATABASE torch_db SET custom.disable_trigger TO 'false';

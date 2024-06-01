@@ -12,31 +12,51 @@ ws://localhost:8000/sync
 
 ## Messsaging Protocol
 
-From client to server
+There are three supported operations: INSERT, UPDATE, and DELETE. The format of these messages applies for both ways communications - from server to client and from client to server.
 
 ```json
 {
-  "cmd": "UPDATE",
-  "data": {
-    "itemID": "5bax1usfu2uk",
-    "title": "New Test"
+  "op": "INSERT",
+  "itemID": "ds34jhb2134",
+  "diffs": {
+    "title": {
+      "val": "New Task",
+      "cl": 123
+    },
+    "status": {
+      "val": "ACTIVE",
+      "cl": 12
+    }
   }
 }
 ```
 
-From server to client
-
 ```json
 {
   "op": "UPDATE",
-  "itemID": "absjfdnfds35m21",
-  "diff": {
-    "title": "New Task",
-    "updatedAt": "2023-04-05T0503"
+  "itemID": "ds34jhb2134",
+  "diffs": {
+    "title": {
+      "val": "New Task",
+      "cl": 123
+    },
+    "status": {
+      "val": "ACTIVE",
+      "cl": 12
+    }
   }
+}
+```
+
+```json
+{
+  "op": "DELETE",
+  "itemID": "ds34jhb2134",
+  "cl": 123
 }
 ```
 
 ## TODOS
 
-- [] Make sure ParentID column cannot accept IDs that are of a different user and that it does not equal to the item ID itself
+- [ ] Make sure ParentID column cannot accept IDs that are of a different user and that it does not equal to the item ID itself
+- [ ] Is `custom.disable_trigger` required?
