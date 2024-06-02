@@ -59,4 +59,4 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 ## TODOS
 
 - [ ] Make sure ParentID column cannot accept IDs that are of a different user and that it does not equal to the item ID itself
-- [ ] Is `custom.disable_trigger` required?
+- [x] Is `custom.disable_trigger` required? (No)

@@ -8,13 +8,6 @@ func deleteRecord(userID string, itemID string, cl int64) error {
 		return err
 	}
 
-	// Disable the trigger for this transaction
-	_, err = tx.Exec("SET LOCAL custom.disable_trigger = 'true'")
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	// Compare item clocks
 	var itemClock int64
 	err = tx.QueryRow("SELECT item__c FROM items WHERE user_id = $1 AND item_id = $2", userID, itemID).Scan(&itemClock)
@@ -34,7 +27,7 @@ func deleteRecord(userID string, itemID string, cl int64) error {
 		return err
 	}
 
-	// Commit the transaction, which will automatically reset the custom setting
+	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		return err

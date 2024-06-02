@@ -13,13 +13,6 @@ func insertRecord(userID string, itemID string, diffs Diffs) error {
 		return err
 	}
 
-	// Disable the trigger for this transaction
-	_, err = tx.Exec("SET LOCAL custom.disable_trigger = 'true'")
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	// Execute INSERT command
 	_, err = tx.Exec(query, args...)
 	if err != nil {
@@ -27,7 +20,7 @@ func insertRecord(userID string, itemID string, diffs Diffs) error {
 		return err
 	}
 
-	// Commit the transaction, which will automatically reset the custom setting
+	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		return err

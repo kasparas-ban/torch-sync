@@ -20,13 +20,6 @@ func updateRecord(userID string, itemID string, diffs Diffs) error {
 		return err
 	}
 
-	// Disable the trigger for this transaction
-	_, err = tx.Exec("SET LOCAL custom.disable_trigger = 'true'")
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	// Get all relevant clocks from DB
 	clockQuery, clockArgs, clockPointers, clockValues := getClockQuery(userID, itemID, updateCols)
 	err = tx.QueryRow(clockQuery, clockArgs...).Scan(clockPointers...)
@@ -57,7 +50,7 @@ func updateRecord(userID string, itemID string, diffs Diffs) error {
 		return err
 	}
 
-	// Commit the transaction, which will automatically reset the custom setting
+	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		return err

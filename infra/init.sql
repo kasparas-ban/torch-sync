@@ -341,8 +341,6 @@ FOR EACH ROW
 EXECUTE FUNCTION update_item_clock();
 
 -- Notify trigger
-ALTER DATABASE torch_db SET custom.disable_trigger TO 'false';
-
 CREATE OR REPLACE FUNCTION table_update_notify() RETURNS trigger AS $$
 DECLARE
     msg JSONB := '{}'::JSONB;
