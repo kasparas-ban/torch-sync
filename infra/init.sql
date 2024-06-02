@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS items (
   item__c BIGINT NOT NULL DEFAULT 0
 );
 
--- Update trigger
+-- Timestamp update trigger
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -326,7 +326,7 @@ BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
 
--- Clock trigger
+-- Row update clock trigger
 CREATE OR REPLACE FUNCTION update_item_clock()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -336,7 +336,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER set_item_clock
-AFTER UPDATE ON items
+BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_item_clock();
 
@@ -393,4 +393,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER items_notify_update AFTER INSERT OR UPDATE OR DELETE ON items FOR EACH ROW EXECUTE PROCEDURE table_update_notify();
+CREATE OR REPLACE TRIGGER items_notify_update 
+AFTER INSERT OR UPDATE OR DELETE ON items 
+FOR EACH ROW 
+EXECUTE PROCEDURE table_update_notify();

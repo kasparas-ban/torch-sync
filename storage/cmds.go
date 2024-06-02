@@ -49,7 +49,7 @@ func ProcessCmd(msg []byte, userID string) error {
 		err = insertRecord(userID, o.ItemID, o.Diffs)
 		return err
 	case "DELETE":
-		err = deleteRecord(o.ItemID, userID, o.Cl.Int64)
+		err = deleteRecord(userID, o.ItemID, o.Cl.Int64)
 		return err
 	default:
 		return errors.New("cmd not found")

@@ -22,7 +22,7 @@ func deleteRecord(userID string, itemID string, cl int64) error {
 		tx.Rollback()
 		return err
 	}
-	if itemClock >= cl {
+	if itemClock > cl {
 		tx.Rollback()
 		return errors.New("delete aborted: outdated command")
 	}
