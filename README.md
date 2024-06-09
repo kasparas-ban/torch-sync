@@ -18,15 +18,17 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 {
   "op": "INSERT",
   "itemID": "ds34jhb2134",
-  "diffs": {
-    "title": {
-      "val": "New Task",
-      "cl": 123
-    },
-    "status": {
-      "val": "ACTIVE",
-      "cl": 12
-    }
+  "data": {
+    "title": "New Task",
+    "item_type": "TASK",
+    // Optional
+    "status": "ACTIVE",
+    "time_spent": 0,
+    "created_at": "2024-8-9T03:56:55+00:00",
+    "target_date": null,
+    "priority": null,
+    "duration": null,
+    "parent_id": null
   }
 }
 ```

@@ -10,27 +10,9 @@ import (
 type Op struct {
 	Op     string          `json:"op"` // INSERT, UPDATE or DELETE
 	ItemID string          `json:"itemID"`
-	Diffs  Diffs           `json:"diffs"`
+	Diffs  *Diffs          `json:"diffs"`
+	Data   *InsertData     `json:"data"`
 	Cl     types.NullInt64 `json:"cl,omitempty"`
-}
-
-type Diffs struct {
-	Title       *FieldVal[string] `json:"title,omitempty"`
-	ItemType    *FieldVal[string] `json:"itemType,omitempty"`
-	Status      *FieldVal[string] `json:"status,omitempty"`
-	TargetDate  *FieldVal[string] `json:"targetDate,omitempty"`
-	Priority    *FieldVal[string] `json:"priority,omitempty"`
-	Duration    *FieldVal[int64]  `json:"duration,omitempty"`
-	TimeSpent   *FieldVal[int64]  `json:"timeSpent,omitempty"`
-	RecTimes    *FieldVal[int64]  `json:"recTimes,omitempty"`
-	RecPeriod   *FieldVal[string] `json:"recPeriod,omitempty"`
-	RecProgress *FieldVal[int64]  `json:"recProgress,omitempty"`
-	ParentID    *FieldVal[string] `json:"parentID,omitempty"`
-}
-
-type FieldVal[T any] struct {
-	Val T     `json:"val"`
-	Cl  int64 `json:"cl"`
 }
 
 func ProcessCmd(msg []byte, userID string) error {
@@ -43,10 +25,16 @@ func ProcessCmd(msg []byte, userID string) error {
 
 	switch o.Op {
 	case "UPDATE":
-		err = updateRecord(userID, o.ItemID, o.Diffs)
+		if o.Diffs == nil {
+			return errors.New("incorrect msg body format")
+		}
+		err = updateRecord(userID, o.ItemID, *o.Diffs)
 		return err
 	case "INSERT":
-		err = insertRecord(userID, o.ItemID, o.Diffs)
+		if o.Data == nil {
+			return errors.New("incorrect msg body format")
+		}
+		err = insertRecord(userID, o.ItemID, *o.Data)
 		return err
 	case "DELETE":
 		err = deleteRecord(userID, o.ItemID, o.Cl.Int64)

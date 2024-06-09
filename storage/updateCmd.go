@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,6 +13,40 @@ type updateCol struct {
 	Clock  int64
 }
 
+type Diffs struct {
+	Title       *FieldVal[string] `json:"title,omitempty"`
+	ItemType    *FieldVal[string] `json:"itemType,omitempty"`
+	Status      *FieldVal[string] `json:"status,omitempty"`
+	TargetDate  *FieldVal[string] `json:"targetDate,omitempty"`
+	Priority    *FieldVal[string] `json:"priority,omitempty"`
+	Duration    *FieldVal[int64]  `json:"duration,omitempty"`
+	TimeSpent   *FieldVal[int64]  `json:"timeSpent,omitempty"`
+	RecTimes    *FieldVal[int64]  `json:"recTimes,omitempty"`
+	RecPeriod   *FieldVal[string] `json:"recPeriod,omitempty"`
+	RecProgress *FieldVal[int64]  `json:"recProgress,omitempty"`
+	ParentID    *FieldVal[string] `json:"parentID,omitempty"`
+}
+
+type FieldVal[T any] struct {
+	Val T     `json:"val"`
+	Cl  int64 `json:"cl"`
+}
+
+func (d *Diffs) UnmarshalJSON(b []byte) error {
+	type Alias Diffs
+	temp := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(d),
+	}
+
+	err := json.Unmarshal(b, &temp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func updateRecord(userID string, itemID string, diffs Diffs) error {
 	updateCols := getUpdateData(diffs)
 

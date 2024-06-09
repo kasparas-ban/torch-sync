@@ -1,12 +1,41 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
 
-func insertRecord(userID string, itemID string, diffs Diffs) error {
-	query, args := buildInsertQuery(userID, itemID, diffs)
+type InsertData struct {
+	Title       string
+	Item_type   string
+	Status      *string
+	Target_date *string
+	Priority    *string
+	Duration    *string
+	Parent_id   *string
+	Time_spent  *int64
+	Created_at  *string
+}
+
+func (d *InsertData) UnmarshalJSON(b []byte) error {
+	type Alias InsertData
+	temp := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(d),
+	}
+
+	err := json.Unmarshal(b, &temp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func insertRecord(userID string, itemID string, data InsertData) error {
+	query, args := buildInsertQuery(userID, itemID, data)
 
 	tx, err := DB.Begin()
 	if err != nil {
@@ -28,7 +57,7 @@ func insertRecord(userID string, itemID string, diffs Diffs) error {
 
 	return nil
 }
-func buildInsertQuery(userID string, itemID string, diffs Diffs) (string, []interface{}) {
+func buildInsertQuery(userID string, itemID string, data InsertData) (string, []interface{}) {
 	var setColName []string
 	var cmdArgs []string
 	var args []interface{}
@@ -44,74 +73,78 @@ func buildInsertQuery(userID string, itemID string, diffs Diffs) (string, []inte
 	args = append(args, userID)
 	argID++
 
-	if diffs.ItemType != nil {
-		setColName = append(setColName, "item_type")
-		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.ItemType.Val)
-		argID++
-	}
-	if diffs.Title != nil {
-		setColName = append(setColName, "title")
-		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.Title.Val)
-		argID++
-	}
-	if diffs.Status != nil {
+	setColName = append(setColName, "title")
+	cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+	args = append(args, data.Title)
+	argID++
+
+	setColName = append(setColName, "item_type")
+	cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+	args = append(args, data.Item_type)
+	argID++
+
+	if data.Status != nil {
 		setColName = append(setColName, "status")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.Status.Val)
+		args = append(args, *data.Status)
 		argID++
 	}
-	if diffs.TargetDate != nil {
+	if data.Target_date != nil {
 		setColName = append(setColName, "target_date")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.TargetDate.Val)
+		args = append(args, *data.Target_date)
 		argID++
 	}
-	if diffs.Priority != nil {
+	if data.Priority != nil {
 		setColName = append(setColName, "priority")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.Priority.Val)
+		args = append(args, *data.Priority)
 		argID++
 	}
-	if diffs.Duration != nil {
+	if data.Duration != nil {
 		setColName = append(setColName, "duration")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.Duration.Val)
+		args = append(args, data.Duration)
 		argID++
 	}
-	if diffs.TimeSpent != nil {
+	if data.Time_spent != nil {
 		setColName = append(setColName, "time_spent")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.TimeSpent.Val)
+		args = append(args, *data.Time_spent)
 		argID++
 	}
-	if diffs.RecTimes != nil {
-		setColName = append(setColName, "rec_times")
-		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.RecTimes.Val)
-		argID++
-	}
-	if diffs.RecPeriod != nil {
-		setColName = append(setColName, "rec_period")
-		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.RecPeriod.Val)
-		argID++
-	}
-	if diffs.RecProgress != nil {
-		setColName = append(setColName, "rec_progress")
-		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.RecProgress.Val)
-		argID++
-	}
-	if diffs.ParentID != nil {
+	// if data.RecTimes != nil {
+	// 	setColName = append(setColName, "rec_times")
+	// 	cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+	// 	args = append(args, data.RecTimes.Val)
+	// 	argID++
+	// }
+	// if data.RecPeriod != nil {
+	// 	setColName = append(setColName, "rec_period")
+	// 	cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+	// 	args = append(args, data.RecPeriod.Val)
+	// 	argID++
+	// }
+	// if data.RecProgress != nil {
+	// 	setColName = append(setColName, "rec_progress")
+	// 	cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+	// 	args = append(args, data.RecProgress.Val)
+	// 	argID++
+	// }
+	if data.Parent_id != nil {
 		setColName = append(setColName, "parent_id")
 		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
-		args = append(args, diffs.ParentID.Val)
+		args = append(args, *data.Parent_id)
+		argID++
+	}
+	if data.Created_at != nil {
+		setColName = append(setColName, "created_at")
+		cmdArgs = append(cmdArgs, fmt.Sprintf("$%d", argID))
+		args = append(args, *data.Created_at)
 		argID++
 	}
 
-	query := fmt.Sprintf("INSERT INTO items (%s) VALUES (%v)", strings.Join(setColName, ","), strings.Join(cmdArgs, ","))
+	query := fmt.Sprintf("INSERT INTO items (%s) VALUES (%v)", strings.Join(setColName, ", "), strings.Join(cmdArgs, ", "))
 
 	return query, args
 }
