@@ -1,12 +1,12 @@
 package storage
 
 type Item struct {
-	Item_id string `json:"item_id"`
 	User_id string `json:"user_id"`
 	ItemResponse
 }
 
 type ItemResponse struct {
+	Item_id        string  `json:"item_id"`
 	Title          string  `json:"title"`
 	Item_type      string  `json:"item_type"`
 	Status         string  `json:"status"`
@@ -48,15 +48,18 @@ func GetAllItemsByUser(userID string) ([]ItemResponse, error) {
 	var items []ItemResponse
 	for rows.Next() {
 		var item ItemResponse
-		var item_id, user_id string
-		if err := rows.Scan(&item_id, &user_id, &item.Title, &item.Item_type, &item.Status,
+		var user_id string
+
+		err := rows.Scan(&item.Item_id, &user_id, &item.Title, &item.Item_type, &item.Status,
 			&item.Target_date, &item.Priority, &item.Duration, &item.Time_spent, &item.Rec_times,
 			&item.Rec_period, &item.Rec_progress, &item.Rec_updated_at, &item.Parent_id, &item.Updated_at,
 			&item.Created_at, &item.Title__c, &item.Status__c, &item.Target_date__c, &item.Priority__c,
 			&item.Duration__c, &item.Time_spent__c, &item.Rec_times__c, &item.Rec_period__c, &item.Rec_progress__c,
-			&item.Parent_id__c, &item.Item__c); err != nil {
+			&item.Parent_id__c, &item.Item__c)
+		if err != nil {
 			return nil, err
 		}
+
 		items = append(items, item)
 	}
 
