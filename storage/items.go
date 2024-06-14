@@ -1,34 +1,41 @@
 package storage
 
-import (
-	"torch/torch-sync/types"
-)
-
 type Item struct {
-	ItemID       string           `json:"itemID"`
-	Title        types.NullString `json:"title"`
-	ItemType     types.NullString `json:"itemType"`
-	Status       types.NullString `json:"status"`
-	TargetDate   types.NullString `json:"targetDate"`
-	Priority     types.NullString `json:"priority"`
-	Duration     types.NullInt64  `json:"duration"`
-	TimeSpent    types.NullInt64  `json:"timeSpent"`
-	RecTimes     types.NullInt64  `json:"recTimes"`
-	RecPeriod    types.NullString `json:"recPeriod"`
-	RecProgress  types.NullInt64  `json:"recProgress"`
-	RecUpdatedAt types.NullString `json:"recUpdatedAt"`
-	ParentID     types.NullString `json:"parentID"`
-	UpdatedAt    types.NullString `json:"updatedAt"`
-	CreatedAt    types.NullString `json:"createdAt"`
+	Item_id        string  `json:"item_id"`
+	User_id        string  `json:"user_id"`
+	Title          string  `json:"title"`
+	Item_type      string  `json:"item_type"`
+	Status         string  `json:"status"`
+	Target_date    *string `json:"target_date"`
+	Priority       *string `json:"priority"`
+	Duration       *string `json:"duration"`
+	Time_spent     int64   `json:"time_spent"`
+	Rec_times      *int64  `json:"rec_times"`
+	Rec_period     *string `json:"rec_period"`
+	Rec_progress   *int64  `json:"rec_progress"`
+	Rec_updated_at *string `json:"rec_updated_at"`
+	Parent_id      *string `json:"parent_id"`
+	Updated_at     string  `json:"updated_at"`
+	Created_at     string  `json:"created_at"`
+	// Clocks
+	Title__c        int64 `json:"title__c"`
+	Status__c       int64 `json:"status__c"`
+	Target_date__c  int64 `json:"target_date__c"`
+	Priority__c     int64 `json:"priority__c"`
+	Duration__c     int64 `json:"duration__c"`
+	Time_spent__c   int64 `json:"time_spent__c"`
+	Rec_times__c    int64 `json:"rec_times__c"`
+	Rec_period__c   int64 `json:"rec_period__c"`
+	Rec_progress__c int64 `json:"rec_progress__c"`
+	Parent_id__c    int64 `json:"parent_id__c"`
+	Item__c         int64 `json:"item__c"`
 }
 
 func GetAllItemsByUser(userID string) ([]Item, error) {
 	rows, err := DB.Query(`
-		SELECT item_id, title, item_type, status, target_date, 
-		priority, duration, time_spent, rec_times, rec_period, 
-		rec_progress, rec_updated_at, parent_id, updated_at, 
-		created_at 
-		FROM items WHERE user_id = $1`, userID)
+		SELECT * 
+		FROM items 
+		WHERE user_id = $1`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +44,12 @@ func GetAllItemsByUser(userID string) ([]Item, error) {
 	var items []Item
 	for rows.Next() {
 		var item Item
-		if err := rows.Scan(&item.ItemID, &item.Title, &item.ItemType, &item.Status,
-			&item.TargetDate, &item.Priority, &item.Duration, &item.TimeSpent, &item.RecTimes,
-			&item.RecPeriod, &item.RecProgress, &item.RecUpdatedAt, &item.ParentID, &item.UpdatedAt,
-			&item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.Item_id, &item.User_id, &item.Title, &item.Item_type, &item.Status,
+			&item.Target_date, &item.Priority, &item.Duration, &item.Time_spent, &item.Rec_times,
+			&item.Rec_period, &item.Rec_progress, &item.Rec_updated_at, &item.Parent_id, &item.Updated_at,
+			&item.Created_at, &item.Title__c, &item.Status__c, &item.Target_date__c, &item.Priority__c,
+			&item.Duration__c, &item.Time_spent__c, &item.Rec_times__c, &item.Rec_period__c, &item.Rec_progress__c,
+			&item.Parent_id__c, &item.Item__c); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
