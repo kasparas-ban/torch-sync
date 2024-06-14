@@ -1,8 +1,12 @@
 package storage
 
 type Item struct {
-	Item_id        string  `json:"item_id"`
-	User_id        string  `json:"user_id"`
+	Item_id string `json:"item_id"`
+	User_id string `json:"user_id"`
+	ItemResponse
+}
+
+type ItemResponse struct {
 	Title          string  `json:"title"`
 	Item_type      string  `json:"item_type"`
 	Status         string  `json:"status"`
@@ -31,7 +35,7 @@ type Item struct {
 	Item__c         int64 `json:"item__c"`
 }
 
-func GetAllItemsByUser(userID string) ([]Item, error) {
+func GetAllItemsByUser(userID string) ([]ItemResponse, error) {
 	rows, err := DB.Query(`
 		SELECT * 
 		FROM items 
@@ -41,10 +45,11 @@ func GetAllItemsByUser(userID string) ([]Item, error) {
 	}
 	defer rows.Close()
 
-	var items []Item
+	var items []ItemResponse
 	for rows.Next() {
-		var item Item
-		if err := rows.Scan(&item.Item_id, &item.User_id, &item.Title, &item.Item_type, &item.Status,
+		var item ItemResponse
+		var item_id, user_id string
+		if err := rows.Scan(&item_id, &user_id, &item.Title, &item.Item_type, &item.Status,
 			&item.Target_date, &item.Priority, &item.Duration, &item.Time_spent, &item.Rec_times,
 			&item.Rec_period, &item.Rec_progress, &item.Rec_updated_at, &item.Parent_id, &item.Updated_at,
 			&item.Created_at, &item.Title__c, &item.Status__c, &item.Target_date__c, &item.Priority__c,
