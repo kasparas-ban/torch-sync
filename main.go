@@ -72,15 +72,16 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// create fiber app
 	app := fiber.New()
 
-	app.Use(middleware.AuthMiddleware)
 	app.Use("/sync", middleware.WebsocketsMiddleware)
+	app.Get("/sync", websocket.New(handlers.SyncHandler))
 
 	// add health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
-	app.Get("/sync", websocket.New(handlers.SyncHandler))
+	app.Use(middleware.AuthMiddleware)
+
 	app.Get("/items", handlers.ItemsHandler)
 	app.Get("/user", handlers.UserHandler)
 

@@ -34,32 +34,23 @@ func InitClerk(env config.EnvVars) {
 func AuthMiddleware(c *fiber.Ctx) error {
 	sessionToken := c.Get("Authorization")
 	sessionToken = strings.TrimPrefix(sessionToken, "Bearer ")
-	sessClaims, err := client.VerifyToken(sessionToken)
-	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON("unauthorized")
-	}
-
-	err = saveClerkIDContext(c, sessClaims)
+	err := VerifyToken(c, sessionToken)
 	if err != nil {
 		return c.Status(http.StatusUnauthorized).SendString("unauthorized")
 	}
+
 	return c.Next()
 }
 
-func saveClerkIDContext(c *fiber.Ctx, claims *clerk.SessionClaims) error {
-	// Read clerkID
-	user, err := client.Users().Read(claims.Claims.Subject)
+func VerifyToken(c *fiber.Ctx, token string) error {
+	sessClaims, err := client.VerifyToken(token)
 	if err != nil {
-		return err
+		return errors.New("unauthorized")
 	}
 
-	userID := user.PrivateMetadata.(map[string]interface{})[UserID_metadata]
-	if userID == nil || userID == "" {
-		// Add userID to the Clerk metadata
-		userID, err = AddUserID(c, user)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).SendString("user not found")
-		}
+	userID, err := saveClerkIDContext(sessClaims)
+	if err != nil {
+		return errors.New("unauthorized")
 	}
 
 	// Add userID to the current context
@@ -68,7 +59,26 @@ func saveClerkIDContext(c *fiber.Ctx, claims *clerk.SessionClaims) error {
 	return nil
 }
 
-func AddUserID(c *fiber.Ctx, user *clerk.User) (string, error) {
+func saveClerkIDContext(claims *clerk.SessionClaims) (string, error) {
+	// Read clerkID
+	user, err := client.Users().Read(claims.Claims.Subject)
+	if err != nil {
+		return "", err
+	}
+
+	userID := user.PrivateMetadata.(map[string]interface{})[UserID_metadata]
+	if userID == nil || userID == "" {
+		// Add userID to the Clerk metadata
+		userID, err = AddUserID(user)
+		if err != nil {
+			return "", errors.New("user not found")
+		}
+	}
+
+	return userID.(string), nil
+}
+
+func AddUserID(user *clerk.User) (string, error) {
 	userInfo, err := storage.GetUserByClerkID(user.ID)
 	if err != nil {
 		return "", err
