@@ -12,7 +12,7 @@ type InsertData struct {
 	Status      *string
 	Target_date *string
 	Priority    *string
-	Duration    *string
+	Duration    *int64
 	Parent_id   *string
 	Time_spent  *int64
 	Created_at  *string

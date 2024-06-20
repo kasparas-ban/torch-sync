@@ -14,17 +14,17 @@ type updateCol struct {
 }
 
 type Diffs struct {
-	Title       *FieldVal[string] `json:"title,omitempty"`
-	ItemType    *FieldVal[string] `json:"itemType,omitempty"`
-	Status      *FieldVal[string] `json:"status,omitempty"`
-	TargetDate  *FieldVal[string] `json:"targetDate,omitempty"`
-	Priority    *FieldVal[string] `json:"priority,omitempty"`
-	Duration    *FieldVal[int64]  `json:"duration,omitempty"`
-	TimeSpent   *FieldVal[int64]  `json:"timeSpent,omitempty"`
-	RecTimes    *FieldVal[int64]  `json:"recTimes,omitempty"`
-	RecPeriod   *FieldVal[string] `json:"recPeriod,omitempty"`
-	RecProgress *FieldVal[int64]  `json:"recProgress,omitempty"`
-	ParentID    *FieldVal[string] `json:"parentID,omitempty"`
+	Title        *FieldVal[string] `json:"title,omitempty"`
+	Status       *FieldVal[string] `json:"status,omitempty"`
+	TargetDate   *FieldVal[string] `json:"target_date,omitempty"`
+	Priority     *FieldVal[string] `json:"priority,omitempty"`
+	Duration     *FieldVal[int64]  `json:"duration,omitempty"`
+	TimeSpent    *FieldVal[int64]  `json:"time_spent,omitempty"`
+	RecTimes     *FieldVal[int64]  `json:"rec_times,omitempty"`
+	RecPeriod    *FieldVal[string] `json:"rec_period,omitempty"`
+	RecProgress  *FieldVal[int64]  `json:"rec_progress,omitempty"`
+	RecUpdatedAt *FieldVal[int64]  `json:"rec_updated_at,omitempty"`
+	ParentID     *FieldVal[string] `json:"parent_id,omitempty"`
 }
 
 type FieldVal[T any] struct {
@@ -123,6 +123,9 @@ func getUpdateData(diffs Diffs) []updateCol {
 	}
 	if diffs.RecProgress != nil {
 		updateCols = append(updateCols, updateCol{"rec_progress", diffs.RecProgress.Val, diffs.RecProgress.Cl})
+	}
+	if diffs.RecUpdatedAt != nil {
+		updateCols = append(updateCols, updateCol{"rec_updated_at", diffs.RecUpdatedAt.Val, diffs.RecUpdatedAt.Cl})
 	}
 	if diffs.ParentID != nil {
 		updateCols = append(updateCols, updateCol{"parent_id", diffs.ParentID.Val, diffs.ParentID.Cl})

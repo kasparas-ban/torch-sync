@@ -12,7 +12,7 @@ type ItemResponse struct {
 	Status         string  `json:"status"`
 	Target_date    *string `json:"target_date"`
 	Priority       *string `json:"priority"`
-	Duration       *string `json:"duration"`
+	Duration       *int64  `json:"duration"`
 	Time_spent     int64   `json:"time_spent"`
 	Rec_times      *int64  `json:"rec_times"`
 	Rec_period     *string `json:"rec_period"`
@@ -45,7 +45,7 @@ func GetAllItemsByUser(userID string) ([]ItemResponse, error) {
 	}
 	defer rows.Close()
 
-	var items []ItemResponse
+	items := []ItemResponse{}
 	for rows.Next() {
 		var item ItemResponse
 		var user_id string

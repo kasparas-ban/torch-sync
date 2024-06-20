@@ -17,7 +17,7 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 ```json
 {
   "op": "INSERT",
-  "itemID": "ds34jhb2134",
+  "item_id": "ds34jhb2134",
   "data": {
     "title": "New Task",
     "item_type": "TASK",
@@ -36,7 +36,7 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 ```json
 {
   "op": "UPDATE",
-  "itemID": "ds34jhb2134",
+  "item_id": "ds34jhb2134",
   "diffs": {
     "title": {
       "val": "New Task",
@@ -53,7 +53,7 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 ```json
 {
   "op": "DELETE",
-  "itemID": "ds34jhb2134",
+  "item_id": "ds34jhb2134",
   "cl": 123
 }
 ```

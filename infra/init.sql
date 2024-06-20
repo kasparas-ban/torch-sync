@@ -277,8 +277,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 --  Items table
 CREATE TABLE IF NOT EXISTS items (
-  item_id VARCHAR(12) PRIMARY KEY,
-  user_id VARCHAR(12) NOT NULL REFERENCES users(user_id),
+  item_id TEXT PRIMARY KEY CHECK (item_id ~ '^[^\s]{16}$'),
+  user_id TEXT NOT NULL CHECK (user_id ~ '^[^\s]{12}$') REFERENCES users(user_id),
   title TEXT NOT NULL,
   item_type TEXT CHECK (item_type in ('DREAM', 'GOAL', 'TASK')) NOT NULL,
   status TEXT CHECK (status in ('ACTIVE', 'COMPLETED', 'ARCHIVED')) DEFAULT 'ACTIVE',

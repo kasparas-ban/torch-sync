@@ -9,7 +9,7 @@ import (
 
 type Op struct {
 	Op     string          `json:"op"` // INSERT, UPDATE or DELETE
-	ItemID string          `json:"itemID"`
+	ItemID string          `json:"item_id"`
 	Diffs  *Diffs          `json:"diffs"`
 	Data   *InsertData     `json:"data"`
 	Cl     types.NullInt64 `json:"cl,omitempty"`
