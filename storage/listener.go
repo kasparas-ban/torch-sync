@@ -35,8 +35,8 @@ func NewNotifier(userID string) *notifier {
 }
 
 func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
-	go n.handleClientConn(c)
-	go n.handleDBConn(channelName)
+	go safeGo(func() { n.handleClientConn(c) })
+	go safeGo(func() { n.handleDBConn(channelName) })
 
 	for {
 		select {
@@ -77,4 +77,19 @@ func (n *notifier) handleClientConn(c *websocket.Conn) {
 			log.Printf("Command failed: %v\n", err)
 		}
 	}
+}
+
+func safeGo(fn func()) {
+	go func() {
+		for {
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Println("Recovered from panic:", r)
+					}
+				}()
+				fn()
+			}()
+		}
+	}()
 }

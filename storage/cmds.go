@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"torch/torch-sync/types"
 )
 
@@ -29,15 +30,18 @@ func ProcessCmd(msg []byte, userID string) error {
 			return errors.New("incorrect msg body format")
 		}
 		err = updateRecord(userID, o.ItemID, *o.Diffs)
+		slog.Info("UPDATE", "op", o)
 		return err
 	case "INSERT":
 		if o.Data == nil {
 			return errors.New("incorrect msg body format")
 		}
 		err = insertRecord(userID, o.ItemID, *o.Data)
+		slog.Info("INSERT", "op", o)
 		return err
 	case "DELETE":
 		err = deleteRecord(userID, o.ItemID, o.Cl.Int64)
+		slog.Info("DELETE", "op", o)
 		return err
 	default:
 		return errors.New("cmd not found")

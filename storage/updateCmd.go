@@ -65,7 +65,7 @@ func updateRecord(userID string, itemID string, diffs Diffs) error {
 	// Determine which columns need to be updated
 	var newCols []updateCol
 	for idx, clock := range clockValues {
-		if clock < updateCols[idx].Clock {
+		if clock <= updateCols[idx].Clock {
 			newCols = append(newCols, updateCols[idx])
 		}
 	}
@@ -158,13 +158,16 @@ func getUpdateQuery(userID string, itemID string, cols []updateCol) (string, []i
 	var setClause []string
 	var args []interface{}
 
-	for i := 0; i < 2*len(cols); i += 2 {
+	clauseCounter := 1
+	for i := 0; i <= len(cols); i += 1 {
 		c := cols[i]
-		setClause = append(setClause, fmt.Sprintf(c.Column+" = $%d", i+1))
+		setClause = append(setClause, fmt.Sprintf(c.Column+" = $%d", clauseCounter))
 		args = append(args, c.Value)
+		clauseCounter++
 
-		setClause = append(setClause, fmt.Sprintf(c.Column+"__c = $%d", i+2))
+		setClause = append(setClause, fmt.Sprintf(c.Column+"__c = $%d", clauseCounter))
 		args = append(args, c.Clock+1)
+		clauseCounter++
 	}
 
 	clause := strings.Join(setClause, ", ")
