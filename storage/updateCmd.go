@@ -159,7 +159,7 @@ func getUpdateQuery(userID string, itemID string, cols []updateCol) (string, []i
 	var args []interface{}
 
 	clauseCounter := 1
-	for i := 0; i <= len(cols); i += 1 {
+	for i := 0; i < len(cols); i += 1 {
 		c := cols[i]
 		setClause = append(setClause, fmt.Sprintf(c.Column+" = $%d", clauseCounter))
 		args = append(args, c.Value)

@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS items (
   rec_period TEXT CHECK (rec_period in ('WEEK', 'DAY', 'MONTH')),
   rec_progress INTEGER,
   rec_updated_at TIMESTAMP DEFAULT NULL,
-  parent_id VARCHAR(12),
+  parent_id TEXT CHECK (parent_id IS NULL OR length(parent_id) = 16),
   updated_at TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW(),
   --- Clocks

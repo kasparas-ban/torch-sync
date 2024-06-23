@@ -36,7 +36,7 @@ func NewNotifier(userID string) *notifier {
 
 func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	go safeGo(func() { n.handleClientConn(c) })
-	go safeGo(func() { n.handleDBConn(channelName) })
+	n.handleDBConn(channelName)
 
 	for {
 		select {
