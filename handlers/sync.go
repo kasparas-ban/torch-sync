@@ -14,6 +14,12 @@ func SyncHandler(c *websocket.Conn) {
 		return
 	}
 
-	n := storage.NewNotifier(userID)
+	wsId, ok := c.Locals("ws_id").(string)
+	if !ok || wsId == "" {
+		c.Close()
+		return
+	}
+
+	n := storage.NewNotifier(userID, wsId)
 	n.StartListening(c, "items_update__"+userID)
 }

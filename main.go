@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func main() {
@@ -71,6 +72,7 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 
 	// create fiber app
 	app := fiber.New()
+	app.Use(recover.New())
 
 	app.Use("/sync", middleware.WebsocketsMiddleware)
 	app.Get("/sync", websocket.New(handlers.SyncHandler))

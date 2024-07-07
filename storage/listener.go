@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -11,6 +12,7 @@ import (
 
 type notifier struct {
 	userID string
+	wsId   string
 	// DB connection
 	listener *pq.Listener
 	dbFailed chan error
@@ -21,11 +23,12 @@ type notifier struct {
 var MIN_RECONN = 10 * time.Second
 var MAX_RECONN = 30 * time.Second
 
-func NewNotifier(userID string) *notifier {
+func NewNotifier(userID string, wsId string) *notifier {
 	l := pq.NewListener(DSN, MIN_RECONN, MAX_RECONN, handleListenerError)
 
 	n := &notifier{
 		userID:       userID,
+		wsId:         wsId,
 		dbFailed:     make(chan error, 2),
 		clientFailed: make(chan error, 2),
 		listener:     l,
@@ -41,7 +44,12 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	for {
 		select {
 		case e := <-n.listener.Notify:
-			err := c.WriteMessage(1, []byte(e.Extra))
+			msg, err := AddWebsocketIdJSON(e.Extra, n.wsId)
+			if err != nil {
+				n.clientFailed <- err
+			}
+
+			err = c.WriteMessage(1, []byte(msg))
 			if err != nil {
 				n.clientFailed <- err
 			}
@@ -92,4 +100,21 @@ func safeGo(fn func()) {
 			}()
 		}
 	}()
+}
+
+func AddWebsocketIdJSON(msg string, wsId string) (string, error) {
+	var data map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(msg), &data); err != nil {
+		return "", err
+	}
+
+	newKey := "wsId"
+	data[newKey] = json.RawMessage(`"` + wsId + `"`)
+
+	updatedJSON, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(updatedJSON), nil
 }
