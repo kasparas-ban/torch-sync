@@ -25,10 +25,20 @@ func WebsocketsMiddleware(c *fiber.Ctx) error {
 	}
 
 	// Add websocket ID to the context
-	wsId := data[1]
+	wsId := strings.Trim(data[1], " ")
 	c.Locals("ws_id", wsId)
 
 	if websocket.IsWebSocketUpgrade(c) {
+		// Handle the WebSocket handshake to set the subprotocol
+		secWebSocketProtocol := c.Get("Sec-WebSocket-Protocol")
+		selectedProtocol := ""
+		if secWebSocketProtocol != "" {
+			protocols := strings.Split(secWebSocketProtocol, ",")
+			selectedProtocol = protocols[1]
+		}
+
+		c.Context().Response.Header.Set("Sec-WebSocket-Protocol", selectedProtocol)
+
 		return c.Next()
 	}
 

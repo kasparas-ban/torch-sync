@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -73,6 +74,11 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// create fiber app
 	app := fiber.New()
 	app.Use(recover.New())
+
+	// configure CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
 
 	app.Use("/sync", middleware.WebsocketsMiddleware)
 	app.Get("/sync", websocket.New(handlers.SyncHandler))
