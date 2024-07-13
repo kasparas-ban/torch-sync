@@ -2,12 +2,14 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/lib/pq"
+	"github.com/tidwall/gjson"
 )
 
 type notifier struct {
@@ -44,12 +46,12 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	for {
 		select {
 		case e := <-n.listener.Notify:
-			msg, err := AddWebsocketIdJSON(e.Extra, n.wsId)
-			if err != nil {
-				n.clientFailed <- err
+			wsId, err := getWebsocketId(e.Extra)
+			if err != nil || wsId == n.wsId {
+				continue
 			}
 
-			err = c.WriteMessage(1, []byte(msg))
+			err = c.WriteMessage(1, []byte(e.Extra))
 			if err != nil {
 				n.clientFailed <- err
 			}
@@ -80,7 +82,7 @@ func (n *notifier) handleClientConn(c *websocket.Conn) {
 			break
 		}
 
-		err = ProcessCmd(msg, n.userID)
+		err = ProcessCmd(msg, n.userID, n.wsId)
 		if err != nil {
 			log.Printf("Command failed: %v\n", err)
 		}
@@ -117,4 +119,15 @@ func AddWebsocketIdJSON(msg string, wsId string) (string, error) {
 	}
 
 	return string(updatedJSON), nil
+}
+
+func getWebsocketId(msg string) (string, error) {
+	result := gjson.GetBytes([]byte(msg), "ws_id")
+	wsId := result.String()
+
+	if wsId == "" {
+		return "", errors.New("failed to read wsId")
+	}
+
+	return wsId, nil
 }

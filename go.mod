@@ -30,6 +30,8 @@ require (
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.53.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
@@ -47,5 +49,6 @@ require (
 	github.com/clerkinc/clerk-sdk-go v1.49.0
 	github.com/gofiber/contrib/websocket v1.3.1
 	github.com/spf13/viper v1.18.2
+	github.com/tidwall/gjson v1.17.1
 	golang.org/x/net v0.23.0 // indirect
 )

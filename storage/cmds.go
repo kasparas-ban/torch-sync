@@ -16,7 +16,7 @@ type Op struct {
 	Cl     types.NullInt64 `json:"cl,omitempty"`
 }
 
-func ProcessCmd(msg []byte, userID string) error {
+func ProcessCmd(msg []byte, userID string, wsId string) error {
 	var o Op
 	err := json.Unmarshal(msg, &o)
 	if err != nil {
@@ -29,18 +29,18 @@ func ProcessCmd(msg []byte, userID string) error {
 		if o.Diffs == nil {
 			return errors.New("incorrect msg body format")
 		}
-		err = updateRecord(userID, o.ItemID, *o.Diffs)
+		err = updateRecord(userID, o.ItemID, *o.Diffs, wsId)
 		slog.Info("UPDATE", "op", o)
 		return err
 	case "INSERT":
 		if o.Data == nil {
 			return errors.New("incorrect msg body format")
 		}
-		err = insertRecord(userID, o.ItemID, *o.Data)
+		err = insertRecord(userID, o.ItemID, *o.Data, wsId)
 		slog.Info("INSERT", "op", o)
 		return err
 	case "DELETE":
-		err = deleteRecord(userID, o.ItemID, o.Cl.Int64)
+		err = deleteRecord(userID, o.ItemID, o.Cl.Int64, wsId)
 		slog.Info("DELETE", "op", o)
 		return err
 	default:

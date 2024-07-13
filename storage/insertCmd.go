@@ -34,11 +34,18 @@ func (d *InsertData) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func insertRecord(userID string, itemID string, data InsertData) error {
+func insertRecord(userID string, itemID string, data InsertData, wsId string) error {
 	query, args := buildInsertQuery(userID, itemID, data)
 
 	tx, err := DB.Begin()
 	if err != nil {
+		return err
+	}
+
+	// Set WebSocket ID
+	_, err = tx.Exec(fmt.Sprintf(`SET custom.ws_id TO '%s'`, wsId))
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 

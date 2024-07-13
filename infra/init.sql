@@ -350,6 +350,7 @@ DECLARE
     old_value JSONB;
 BEGIN
    msg := jsonb_set(msg, '{op}', to_jsonb(TG_OP));
+   msg := jsonb_set(msg, '{ws_id}', to_jsonb(current_setting('custom.ws_id')));
   
      -- if UPDATE return updated fields only
    IF TG_OP = 'UPDATE' THEN
@@ -384,7 +385,7 @@ BEGIN
      -- if DELETE return deleted record ID
    IF TG_OP = 'DELETE' THEN
 	   	msg := jsonb_set(msg, '{item_id}', to_jsonb(OLD.*) -> 'item_id');
-		PERFORM pg_notify(CONCAT('items_update__', OLD.user_id), msg::text);
+		  PERFORM pg_notify(CONCAT('items_update__', OLD.user_id), msg::text);
    END IF;
    
    RETURN NEW;

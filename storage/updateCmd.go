@@ -47,11 +47,18 @@ func (d *Diffs) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
-func updateRecord(userID string, itemID string, diffs Diffs) error {
+func updateRecord(userID string, itemID string, diffs Diffs, wsId string) error {
 	updateCols := getUpdateData(diffs)
 
 	tx, err := DB.Begin()
 	if err != nil {
+		return err
+	}
+
+	// Set WebSocket ID
+	_, err = tx.Exec(fmt.Sprintf(`SET custom.ws_id TO '%s'`, wsId))
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 

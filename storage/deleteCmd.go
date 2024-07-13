@@ -1,10 +1,20 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
-func deleteRecord(userID string, itemID string, cl int64) error {
+func deleteRecord(userID string, itemID string, cl int64, wsId string) error {
 	tx, err := DB.Begin()
 	if err != nil {
+		return err
+	}
+
+	// Set WebSocket ID
+	_, err = tx.Exec(fmt.Sprintf(`SET custom.ws_id TO '%s'`, wsId))
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
