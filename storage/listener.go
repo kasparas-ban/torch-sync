@@ -46,8 +46,8 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	for {
 		select {
 		case e := <-n.listener.Notify:
-			wsId, err := getWebsocketId(e.Extra)
-			if err != nil || wsId == n.wsId {
+			wsId, op, err := readMsg(e.Extra)
+			if err != nil || (wsId == n.wsId && op != "UPDATE") {
 				continue
 			}
 
@@ -121,13 +121,16 @@ func AddWebsocketIdJSON(msg string, wsId string) (string, error) {
 	return string(updatedJSON), nil
 }
 
-func getWebsocketId(msg string) (string, error) {
-	result := gjson.GetBytes([]byte(msg), "ws_id")
-	wsId := result.String()
+func readMsg(msg string) (string, string, error) {
+	wsIdRes := gjson.GetBytes([]byte(msg), "ws_id")
+	opRes := gjson.GetBytes([]byte(msg), "op")
 
-	if wsId == "" {
-		return "", errors.New("failed to read wsId")
+	wsId := wsIdRes.String()
+	op := opRes.String()
+
+	if wsId == "" || op == "" {
+		return "", "", errors.New("failed to read notification message")
 	}
 
-	return wsId, nil
+	return wsId, op, nil
 }
