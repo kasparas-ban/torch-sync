@@ -113,3 +113,7 @@ func GetUserID(c *fiber.Ctx) (string, error) {
 
 	return userID, nil
 }
+
+func GetClerkClient() clerk.Client {
+	return client
+}

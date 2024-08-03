@@ -69,6 +69,7 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 		return nil, nil, err
 	}
 
+	pkg.InitializeValidators()
 	middleware.InitClerk(env)
 
 	// create fiber app
@@ -80,18 +81,27 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 		AllowOrigins: "*",
 	}))
 
-	app.Use("/sync", middleware.WebsocketsMiddleware)
-	app.Get("/sync", websocket.New(handlers.SyncHandler))
-
 	// add health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
+	app.Post("/notify", handlers.EmailNotifyHandler)
+	// app.Post("/register-user", handlers.RegisterUserHandler)
+	app.Post("/add-user", handlers.AddNewUserHandler)
+
+	app.Use("/sync", middleware.WebsocketsMiddleware)
+	app.Get("/sync", websocket.New(handlers.SyncHandler))
+
+	// === Private routes ===
+
 	app.Use(middleware.AuthMiddleware)
 
 	app.Get("/items", handlers.ItemsHandler)
 	app.Get("/user", handlers.UserHandler)
+	app.Put("/update-user", handlers.UpdateUserHandler)
+	// app.Put("/update-user-email", handlers.UpdateUserEmailHandler)
+	// app.Delete("/delete-user", (users.AuthParams{UseAuth: useAuth}).HandleDeleteUser)
 
 	return app, func() {
 		storage.CloseDB(db)

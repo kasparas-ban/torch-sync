@@ -1,3 +1,3 @@
-INSERT INTO users (public_user_id, username, email, clerk_id) VALUES ("ajax3usfu2uk", "test1", "test1@gmail.com", "user_1Ui3QUrAix2lslvsWBmvGeNBKtu");
-INSERT INTO users (public_user_id, username, email, clerk_id) VALUES ("bjax3usfu2uk", "test2", "test2@gmail.com", "user_2Ui3QUrAix2lslvsWBmvGeNBKtu");
-INSERT INTO users (public_user_id, username, email, clerk_id) VALUES ("cjax3usfu2uk", "test3", "test3@gmail.com", "user_3Ui3QUrAix2lslvsWBmvGeNBKtu");
+INSERT INTO users (user_id, username, email, clerk_id) VALUES ("ajax3usfu2uk", "test1", "test1@gmail.com", "user_1Ui3QUrAix2lslvsWBmvGeNBKtu");
+INSERT INTO users (user_id, username, email, clerk_id) VALUES ("bjax3usfu2uk", "test2", "test2@gmail.com", "user_2Ui3QUrAix2lslvsWBmvGeNBKtu");
+INSERT INTO users (user_id, username, email, clerk_id) VALUES ("cjax3usfu2uk", "test3", "test3@gmail.com", "user_3Ui3QUrAix2lslvsWBmvGeNBKtu");
