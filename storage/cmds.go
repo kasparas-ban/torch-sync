@@ -9,14 +9,15 @@ import (
 )
 
 type Op struct {
-	Op     string          `json:"op"` // INSERT, UPDATE or DELETE
-	ItemID string          `json:"item_id"`
-	Diffs  *Diffs          `json:"diffs"`
-	Data   *InsertData     `json:"data"`
-	Cl     types.NullInt64 `json:"cl,omitempty"`
+	Op    string          `json:"op"` // INSERT, UPDATE or DELETE
+	Table string          `json:"table"`
+	RowID string          `json:"row_id"`
+	Diffs *Diffs          `json:"diffs"`
+	Data  *InsertData     `json:"data"`
+	Cl    types.NullInt64 `json:"cl,omitempty"`
 }
 
-func ProcessCmd(msg []byte, userID string, wsId string) error {
+func ProcessCmd(msg []byte, userID string, wsID string) error {
 	var o Op
 	err := json.Unmarshal(msg, &o)
 	if err != nil {
@@ -26,22 +27,25 @@ func ProcessCmd(msg []byte, userID string, wsId string) error {
 
 	switch o.Op {
 	case "UPDATE":
+		slog.Info("UPDATE", "op", o)
 		if o.Diffs == nil {
 			return errors.New("incorrect msg body format")
 		}
-		err = updateRecord(userID, o.ItemID, *o.Diffs, wsId)
-		slog.Info("UPDATE", "op", o)
+		if o.Table == "users" {
+			return updateUserRecord(userID, *o.Diffs, wsID)
+		}
+		err = updateRecord(userID, o.RowID, *o.Diffs, wsID)
 		return err
 	case "INSERT":
+		slog.Info("INSERT", "op", o)
 		if o.Data == nil {
 			return errors.New("incorrect msg body format")
 		}
-		err = insertRecord(userID, o.ItemID, *o.Data, wsId)
-		slog.Info("INSERT", "op", o)
+		err = insertRecord(userID, o.RowID, *o.Data, wsID)
 		return err
 	case "DELETE":
-		err = deleteRecord(userID, o.ItemID, o.Cl.Int64, wsId)
 		slog.Info("DELETE", "op", o)
+		err = deleteRecord(userID, o.RowID, o.Cl.Int64, wsID)
 		return err
 	default:
 		return errors.New("cmd not found")

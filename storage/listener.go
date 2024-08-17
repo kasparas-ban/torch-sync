@@ -3,18 +3,17 @@ package storage
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/lib/pq"
 	"github.com/tidwall/gjson"
+	"golang.org/x/exp/slog"
 )
 
 type notifier struct {
 	userID string
-	wsId   string
+	wsID   string
 	// DB connection
 	listener *pq.Listener
 	dbFailed chan error
@@ -25,12 +24,12 @@ type notifier struct {
 var MIN_RECONN = 10 * time.Second
 var MAX_RECONN = 30 * time.Second
 
-func NewNotifier(userID string, wsId string) *notifier {
+func NewNotifier(userID string, wsID string) *notifier {
 	l := pq.NewListener(DSN, MIN_RECONN, MAX_RECONN, handleListenerError)
 
 	n := &notifier{
 		userID:       userID,
-		wsId:         wsId,
+		wsID:         wsID,
 		dbFailed:     make(chan error, 2),
 		clientFailed: make(chan error, 2),
 		listener:     l,
@@ -46,8 +45,8 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	for {
 		select {
 		case e := <-n.listener.Notify:
-			wsId, op, err := readMsg(e.Extra)
-			if err != nil || (wsId == n.wsId && op != "UPDATE") {
+			wsID, op, err := readMsg(e.Extra)
+			if err != nil || (wsID == n.wsID && op != "UPDATE") {
 				continue
 			}
 
@@ -57,11 +56,11 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 			}
 		case err := <-n.dbFailed:
 			n.listener.Close()
-			fmt.Printf("DB connection error: %v \n", err)
+			slog.Error("DB connection error", "error", err)
 			return
 		case err := <-n.clientFailed:
 			n.listener.Close()
-			fmt.Printf("Client connection error: %v \n", err)
+			slog.Error("Client connection error", "error", err)
 			return
 		}
 	}
@@ -82,9 +81,9 @@ func (n *notifier) handleClientConn(c *websocket.Conn) {
 			break
 		}
 
-		err = ProcessCmd(msg, n.userID, n.wsId)
+		err = ProcessCmd(msg, n.userID, n.wsID)
 		if err != nil {
-			log.Printf("Command failed: %v\n", err)
+			slog.Error("Command failed", "err", err)
 		}
 	}
 }
@@ -95,7 +94,7 @@ func safeGo(fn func()) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						fmt.Println("Recovered from panic:", r)
+						slog.Error("Recovered from panic:", "data", r)
 					}
 				}()
 				fn()
@@ -104,14 +103,14 @@ func safeGo(fn func()) {
 	}()
 }
 
-func AddWebsocketIdJSON(msg string, wsId string) (string, error) {
+func AddWebsocketIdJSON(msg string, wsID string) (string, error) {
 	var data map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(msg), &data); err != nil {
 		return "", err
 	}
 
-	newKey := "wsId"
-	data[newKey] = json.RawMessage(`"` + wsId + `"`)
+	newKey := "wsID"
+	data[newKey] = json.RawMessage(`"` + wsID + `"`)
 
 	updatedJSON, err := json.Marshal(data)
 	if err != nil {
@@ -122,15 +121,15 @@ func AddWebsocketIdJSON(msg string, wsId string) (string, error) {
 }
 
 func readMsg(msg string) (string, string, error) {
-	wsIdRes := gjson.GetBytes([]byte(msg), "ws_id")
+	wsIDRes := gjson.GetBytes([]byte(msg), "ws_id")
 	opRes := gjson.GetBytes([]byte(msg), "op")
 
-	wsId := wsIdRes.String()
+	wsID := wsIDRes.String()
 	op := opRes.String()
 
-	if wsId == "" || op == "" {
+	if wsID == "" || op == "" {
 		return "", "", errors.New("failed to read notification message")
 	}
 
-	return wsId, op, nil
+	return wsID, op, nil
 }

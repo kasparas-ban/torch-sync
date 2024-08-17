@@ -272,7 +272,9 @@ CREATE TABLE IF NOT EXISTS users (
   description TEXT,
   focus_time INTEGER DEFAULT 0,
   updated_at TIMESTAMP DEFAULT NOW(),
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  --- Clocks
+  focus_time__c BIGINT NOT NULL DEFAULT 0
 );
 
 --  Items table
@@ -340,22 +342,27 @@ BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_item_clock();
 
--- Notify trigger
-CREATE OR REPLACE FUNCTION table_update_notify() RETURNS trigger AS $$
+-- General notify trigger
+CREATE OR REPLACE FUNCTION general_update_notify() RETURNS trigger AS $$
 DECLARE
     msg JSONB := '{}'::JSONB;
     diffs JSONB := '{}'::JSONB;
     field TEXT;
     new_value JSONB;
     old_value JSONB;
+
+    pk_column_name text;
 BEGIN
+   msg := jsonb_set(msg, '{table}', to_jsonb(TG_TABLE_NAME));
    msg := jsonb_set(msg, '{op}', to_jsonb(TG_OP));
    msg := jsonb_set(msg, '{ws_id}', to_jsonb(current_setting('custom.ws_id')));
   
+    -- set the name of the primary key column
+   pk_column_name := TG_ARGV[0];
+
      -- if UPDATE return updated fields only
    IF TG_OP = 'UPDATE' THEN
-        msg := jsonb_set(msg, '{item_id}', to_jsonb(NEW.*) -> 'item_id');
-        diffs := jsonb_set(diffs, '{updated_at}', to_jsonb(NEW.*) -> 'updated_at');
+        msg := jsonb_set(msg, '{row_id}', to_jsonb(NEW.*) -> pk_column_name);
    
    		FOR field IN
         	SELECT column_name
@@ -366,33 +373,28 @@ BEGIN
 	        old_value := to_jsonb(OLD.*) -> field;
 	       
         	IF new_value IS DISTINCT FROM old_value THEN
-            	diffs := jsonb_set(diffs, ('{' || field || '}')::text[], to_jsonb(NEW.*) -> field);
+         	    diffs := jsonb_set(diffs, ('{' || field || '}')::text[], to_jsonb(NEW.*) -> field);
         	END IF;
     	END LOOP;
     
     	msg := jsonb_set(msg, '{diffs}', diffs);
     
-    	PERFORM pg_notify(CONCAT('items_update__', NEW.user_id), msg::text);
-   END IF;
-  
-  	   -- if INSERT return inserted record
-   IF TG_OP = 'INSERT' THEN
-   		msg := jsonb_set(msg, '{item_id}', to_jsonb(NEW.*) -> 'item_id');
-   		msg := jsonb_set(msg, '{diffs}', to_jsonb(NEW) - 'user_id'  - 'item_id');
-   		PERFORM pg_notify(CONCAT('items_update__', NEW.user_id), msg::text);
-   END IF;
-  
-     -- if DELETE return deleted record ID
-   IF TG_OP = 'DELETE' THEN
-	   	msg := jsonb_set(msg, '{item_id}', to_jsonb(OLD.*) -> 'item_id');
-		  PERFORM pg_notify(CONCAT('items_update__', OLD.user_id), msg::text);
+    	PERFORM pg_notify(CONCAT('db_update__', NEW.user_id), msg::text);
    END IF;
    
    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER items_notify_update 
-AFTER INSERT OR UPDATE OR DELETE ON items 
-FOR EACH ROW 
-EXECUTE PROCEDURE table_update_notify();
+CREATE OR REPLACE TRIGGER users_trigger
+AFTER INSERT OR UPDATE OR DELETE ON users 
+FOR EACH ROW
+EXECUTE FUNCTION general_update_notify('user_id');
+
+CREATE OR REPLACE TRIGGER items_trigger
+AFTER INSERT OR UPDATE OR DELETE ON items
+FOR EACH ROW
+EXECUTE FUNCTION general_update_notify('item_id');
+
+-- Define a global variable to store temporary ws ids
+SET custom.ws_id TO 0;

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 	"torch/torch-sync/config"
@@ -30,6 +31,10 @@ func main() {
 		exitCode = 1
 		return
 	}
+
+	// setup logger
+	logger := slog.New(pkg.GetLogTextHandler())
+	slog.SetDefault(logger)
 
 	// run the server
 	cleanup, err := run(env)
@@ -87,7 +92,7 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	})
 
 	app.Post("/notify", handlers.EmailNotifyHandler)
-	// app.Post("/register-user", handlers.RegisterUserHandler)
+	// app.Post("/register-user", handlers.RegisterUserHandler) // No way to request email verification
 	app.Post("/add-user", handlers.AddNewUserHandler)
 
 	app.Use("/sync", middleware.WebsocketsMiddleware)

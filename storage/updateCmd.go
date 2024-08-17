@@ -25,6 +25,7 @@ type Diffs struct {
 	RecProgress  *FieldVal[int64]  `json:"rec_progress,omitempty"`
 	RecUpdatedAt *FieldVal[int64]  `json:"rec_updated_at,omitempty"`
 	ParentID     *FieldVal[string] `json:"parent_id,omitempty"`
+	FocusTime    *FieldVal[string] `json:"focus_time,omitempty"`
 }
 
 type FieldVal[T any] struct {

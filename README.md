@@ -14,10 +14,13 @@ ws://localhost:8000/sync
 
 There are three supported operations: INSERT, UPDATE, and DELETE. The format of these messages applies for both ways communications - from server to client and from client to server.
 
+### Items table
+
 ```json
 {
+  "table": "items",
   "op": "INSERT",
-  "item_id": "ds34jhb2134",
+  "row_id": "ds34jhb2134",
   "data": {
     "title": "New Task",
     "item_type": "TASK",
@@ -35,8 +38,9 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 
 ```json
 {
+  "table": "items",
   "op": "UPDATE",
-  "item_id": "ds34jhb2134",
+  "row_id": "ds34jhb2134",
   "diffs": {
     "title": {
       "val": "New Task",
@@ -52,9 +56,26 @@ There are three supported operations: INSERT, UPDATE, and DELETE. The format of 
 
 ```json
 {
+  "table": "items",
   "op": "DELETE",
-  "item_id": "ds34jhb2134",
+  "row_id": "ds34jhb2134",
   "cl": 123
+}
+```
+
+### Users table
+
+```json
+{
+  "table": "users",
+  "op": "UPDATE",
+  "row_id": "ds34jhb2134",
+  "diffs": {
+    "focus_time": {
+      "val": 123,
+      "cl": 10
+    }
+  }
 }
 ```
 

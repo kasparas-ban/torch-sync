@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"torch/torch-sync/middleware"
 	"torch/torch-sync/storage"
 
@@ -14,12 +15,13 @@ func SyncHandler(c *websocket.Conn) {
 		return
 	}
 
-	wsId, ok := c.Locals("ws_id").(string)
-	if !ok || wsId == "" {
+	wsID, ok := c.Locals("ws_id").(string)
+	if !ok || wsID == "" {
 		c.Close()
 		return
 	}
 
-	n := storage.NewNotifier(userID, wsId)
-	n.StartListening(c, "items_update__"+userID)
+	n := storage.NewNotifier(userID, wsID)
+	slog.Info("Listening on DB channel", "wsID", wsID, "userID", userID)
+	n.StartListening(c, "db_update__"+userID)
 }
