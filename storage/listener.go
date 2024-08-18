@@ -45,6 +45,7 @@ func (n *notifier) StartListening(c *websocket.Conn, channelName string) {
 	for {
 		select {
 		case e := <-n.listener.Notify:
+			slog.Info("Msg from DB", "msg", e.Extra)
 			wsID, op, err := readMsg(e.Extra)
 			if err != nil || (wsID == n.wsID && op != "UPDATE") {
 				continue

@@ -1,3 +1,6 @@
+-- Define a global variable to store temporary ws ids
+SET custom.ws_id TO 0;
+
 -- Country table
 CREATE TABLE IF NOT EXISTS countries (
   country_id INTEGER PRIMARY KEY,
@@ -396,5 +399,3 @@ AFTER INSERT OR UPDATE OR DELETE ON items
 FOR EACH ROW
 EXECUTE FUNCTION general_update_notify('item_id');
 
--- Define a global variable to store temporary ws ids
-SET custom.ws_id TO 0;

@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
@@ -48,6 +49,8 @@ func insertRecord(userID string, itemID string, data InsertData, wsId string) er
 		tx.Rollback()
 		return err
 	}
+
+	slog.Info("Executing INSERT", "query", query, "args", args)
 
 	// Execute INSERT command
 	_, err = tx.Exec(query, args...)
