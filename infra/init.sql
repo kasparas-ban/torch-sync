@@ -384,6 +384,19 @@ BEGIN
     
     	PERFORM pg_notify(CONCAT('db_update__', NEW.user_id), msg::text);
    END IF;
+
+    -- if INSERT return inserted record
+   IF TG_OP = 'INSERT' THEN
+   		msg := jsonb_set(msg, '{row_id}', to_jsonb(NEW.*) -> pk_column_name);
+   		msg := jsonb_set(msg, '{diffs}', to_jsonb(NEW) - 'user_id'  - pk_column_name);
+   		PERFORM pg_notify(CONCAT('db_update__', NEW.user_id), msg::text);
+   END IF;
+  
+    -- if DELETE return deleted record ID
+   IF TG_OP = 'DELETE' THEN
+	   	msg := jsonb_set(msg, '{row_id}', to_jsonb(OLD.*) -> pk_column_name);
+		  PERFORM pg_notify(CONCAT('db_update__', OLD.user_id), msg::text);
+   END IF;
    
    RETURN NEW;
 END;
