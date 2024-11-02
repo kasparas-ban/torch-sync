@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"torch/torch-sync/middleware"
 	"torch/torch-sync/storage"
@@ -25,6 +26,11 @@ type NewUserReq struct {
 	Type string
 }
 
+type ConfirmSignInReq struct {
+	ClerkID string `json:"clerkId"`
+	Email   string `json:"email"`
+}
+
 func UserHandler(c *fiber.Ctx) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -33,10 +39,37 @@ func UserHandler(c *fiber.Ctx) error {
 
 	user, err := storage.GetUser(userID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).SendString(err.Error())
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(user)
+}
+
+func ConfirmSignInHandler(c *fiber.Ctx) error {
+	var data ConfirmSignInReq
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request object"})
+	}
+
+	// If user does not exist - create it
+	if _, err := storage.GetUserByClerkID(data.ClerkID); err != nil {
+		user, err := middleware.GetClerkClient().Users().Read(data.ClerkID)
+		if err != nil {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
+		}
+		if user.Username == nil && *user.Username == "" {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "User data is corrupted"})
+		}
+
+		slog.Info("Signed in user not found - creating new one")
+		newUser := storage.NewUser{ClerkID: data.ClerkID, Email: data.Email, Username: *user.Username}
+		_, err = storage.AddUser(newUser)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "User data is invalid"})
+		}
+	}
+
+	return c.SendStatus(http.StatusNoContent)
 }
 
 func RegisterUserHandler(c *fiber.Ctx) error {
@@ -113,6 +146,20 @@ func UpdateUserHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(updatedUser)
+}
+
+func DeleteUserHandler(c *fiber.Ctx) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized access"})
+	}
+
+	err = storage.DeleteUser(userID)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.SendStatus(http.StatusOK)
 }
 
 func validatePayload(data NewUserReq) error {

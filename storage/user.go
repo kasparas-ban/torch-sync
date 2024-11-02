@@ -39,7 +39,7 @@ type UpdateUserReq struct {
 	Username    string       `json:"username" validate:"required,gt=5,lt=21"`
 	Birthday    o.NullString `json:"birthday"`
 	Gender      o.NullString `json:"gender"`
-	CountryCode o.NullString `json:"country_code" validate:"lt=3"`
+	CountryCode o.NullString `json:"countryCode" validate:"lt=3"`
 	City        o.NullString `json:"city"`
 	Description o.NullString `json:"description"`
 }
@@ -50,7 +50,7 @@ type RegisterUserReq struct {
 	Password    string       `json:"password" validate:"required,password"`
 	Birthday    o.NullString `json:"birthday"`
 	Gender      o.NullString `json:"gender"`
-	CountryCode o.NullString `json:"country_code" validate:"lt=3"`
+	CountryCode o.NullString `json:"countryCode" validate:"lt=3"`
 	City        o.NullString `json:"city"`
 	Description o.NullString `json:"description"`
 }
@@ -105,6 +105,12 @@ func AddUser(u NewUser) (ExistingUser, error) {
 		return newUser, err
 	}
 	defer tx.Rollback()
+
+	_, err = tx.Exec(`SET custom.ws_id TO '0'`)
+	if err != nil {
+		tx.Rollback()
+		return newUser, err
+	}
 
 	// Add user
 	_, err = tx.ExecContext(ctx, "INSERT INTO users (user_id, clerk_id, username, email) VALUES ($1, $2, $3, $4)",
@@ -199,6 +205,12 @@ func UpdateUser(userID string, u UpdateUserReq) (ExistingUser, error) {
 	}
 	defer tx.Rollback()
 
+	_, err = tx.Exec(`SET custom.ws_id TO '0'`)
+	if err != nil {
+		tx.Rollback()
+		return updatedUser, err
+	}
+
 	// Get country ID
 	var countryId o.NullUint
 	if u.CountryCode.IsValid && u.CountryCode.Val != "" {
@@ -242,6 +254,40 @@ func UpdateUser(userID string, u UpdateUserReq) (ExistingUser, error) {
 	}
 
 	return updatedUser, err
+}
+
+func DeleteUser(userID string) error {
+	ctx := context.Background()
+
+	tx, err := DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`SET custom.ws_id TO '0'`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Delete all user items
+	_, err = tx.ExecContext(ctx, "DELETE FROM items WHERE user_id = $1", userID)
+	if err != nil {
+		return err
+	}
+
+	// Delete user
+	_, err = tx.ExecContext(ctx, "DELETE FROM users WHERE user_id = $1", userID)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (u *UpdateUserReq) Validate() error {
