@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"torch/torch-sync/middleware"
 	"torch/torch-sync/storage"
 
@@ -63,9 +65,25 @@ func ConfirmSignInHandler(c *fiber.Ctx) error {
 
 		slog.Info("Signed in user not found - creating new one")
 		newUser := storage.NewUser{ClerkID: data.ClerkID, Email: data.Email, Username: *user.Username}
-		_, err = storage.AddUser(newUser)
+		createdUser, err := storage.AddUser(newUser)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "User data is invalid"})
+		}
+
+		// Add userID to clerk metadata
+		currPrivMetadata := make(map[string]interface{})
+		currPrivMetadata[middleware.UserID_metadata] = createdUser.UserID
+
+		var keyValStrings []string
+		for key, value := range currPrivMetadata {
+			keyValStrings = append(keyValStrings, fmt.Sprintf("\"%s\": \"%s\"", key, value))
+		}
+		finalStr := fmt.Sprintf("{%s}", strings.Join(keyValStrings, ","))
+		_, err = middleware.GetClerkClient().Users().Update(user.ID, &clerk.UpdateUser{
+			PrivateMetadata: finalStr,
+		})
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "User data is corrupted"})
 		}
 	}
 
@@ -82,19 +100,9 @@ func RegisterUserHandler(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user object"})
 	}
 
-	var params clerk.CreateUserParams
-	params.EmailAddresses = []string{userData.Email}
-	params.Password = &userData.Password
-	params.Username = &userData.Username
-
-	clerkUser, err := middleware.GetClerkClient().Users().Create(params)
+	newUser, err := storage.RegisterUser(userData)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to register user"})
-	}
-
-	newUser, err := storage.RegisterUser(userData, clerkUser.ID)
-	if err != nil {
-		middleware.GetClerkClient().Users().Delete(clerkUser.ID)
+		middleware.GetClerkClient().Users().Delete(userData.ClerkID)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to register user"})
 	}
 
@@ -157,6 +165,16 @@ func DeleteUserHandler(c *fiber.Ctx) error {
 	err = storage.DeleteUser(userID)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Delete Clerk user data
+	clerkID, err := middleware.GetClerkUserID(c)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	_, err = middleware.GetClerkClient().Users().Delete(clerkID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.SendStatus(http.StatusOK)

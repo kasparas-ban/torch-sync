@@ -92,8 +92,8 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	})
 
 	app.Post("/notify", handlers.EmailNotifyHandler)
-	// app.Post("/register-user", handlers.RegisterUserHandler) // No way to request email verification
 	app.Post("/add-user", handlers.AddNewUserHandler)
+	app.Post("/register-user", handlers.RegisterUserHandler)
 
 	app.Use("/sync", middleware.WebsocketsMiddleware)
 	app.Get("/sync", websocket.New(handlers.SyncHandler))

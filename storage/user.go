@@ -45,6 +45,7 @@ type UpdateUserReq struct {
 }
 
 type RegisterUserReq struct {
+	ClerkID     string       `json:"clerkID"`
 	Username    string       `json:"username" validate:"required,gt=5,lt=21"`
 	Email       string       `json:"email" validate:"required,email"`
 	Password    string       `json:"password" validate:"required,password"`
@@ -140,7 +141,7 @@ func AddUser(u NewUser) (ExistingUser, error) {
 	return newUser, err
 }
 
-func RegisterUser(u RegisterUserReq, clerkID string) (ExistingUser, error) {
+func RegisterUser(u RegisterUserReq) (ExistingUser, error) {
 	ctx := context.Background()
 
 	var newUser ExistingUser
@@ -154,6 +155,12 @@ func RegisterUser(u RegisterUserReq, clerkID string) (ExistingUser, error) {
 		return newUser, err
 	}
 	defer tx.Rollback()
+
+	_, err = tx.Exec(`SET custom.ws_id TO '0'`)
+	if err != nil {
+		tx.Rollback()
+		return newUser, err
+	}
 
 	// Get country ID
 	var countryId o.NullUint
@@ -169,7 +176,7 @@ func RegisterUser(u RegisterUserReq, clerkID string) (ExistingUser, error) {
 	// Add user
 	_, err = tx.ExecContext(ctx, `
 			INSERT INTO users (user_id, clerk_id, username, email, birthday, gender, country_id, city, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		`, userID, clerkID, u.Username, u.Email, u.Birthday, u.Gender, countryId, u.City, u.Description)
+		`, userID, u.ClerkID, u.Username, u.Email, u.Birthday, u.Gender, countryId, u.City, u.Description)
 	if err != nil {
 		return newUser, err
 	}

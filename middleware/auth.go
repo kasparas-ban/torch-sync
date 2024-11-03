@@ -18,6 +18,7 @@ import (
 var client clerk.Client
 
 var UserID_metadata = "user_id"
+var ClerkUserIDContext = "clerk_id"
 
 func InitClerk(env config.EnvVars) {
 	var err error
@@ -48,7 +49,7 @@ func VerifyToken(c *fiber.Ctx, token string) error {
 		return errors.New("unauthorized")
 	}
 
-	userID, err := saveClerkIDContext(sessClaims)
+	userID, err := saveClerkIDContext(c, sessClaims)
 	if err != nil {
 		return errors.New("unauthorized")
 	}
@@ -59,12 +60,15 @@ func VerifyToken(c *fiber.Ctx, token string) error {
 	return nil
 }
 
-func saveClerkIDContext(claims *clerk.SessionClaims) (string, error) {
+func saveClerkIDContext(c *fiber.Ctx, claims *clerk.SessionClaims) (string, error) {
 	// Read clerkID
 	user, err := client.Users().Read(claims.Claims.Subject)
 	if err != nil {
 		return "", err
 	}
+
+	// Add Clerk user ID to the context
+	c.Locals(ClerkUserIDContext, user.ID)
 
 	userID := user.PrivateMetadata.(map[string]interface{})[UserID_metadata]
 	if userID == nil || userID == "" {
@@ -112,6 +116,15 @@ func GetUserID(c *fiber.Ctx) (string, error) {
 	}
 
 	return userID, nil
+}
+
+func GetClerkUserID(c *fiber.Ctx) (string, error) {
+	clerkID, ok := c.Locals(ClerkUserIDContext).(string)
+	if !ok || clerkID == "" {
+		return "", errors.New("clerk ID not found")
+	}
+
+	return clerkID, nil
 }
 
 func GetClerkClient() clerk.Client {
