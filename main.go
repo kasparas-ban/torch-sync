@@ -68,7 +68,7 @@ func run(env config.EnvVars) (func(), error) {
 
 func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// init storage
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", env.DB_USERNAME, env.DB_PASSWORD, env.DB_HOSTNAME, env.DB_NAME)
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", env.DB_USERNAME, env.DB_PASSWORD, env.DB_HOSTNAME, env.DB_PORT, env.DB_NAME)
 	db, err := storage.InitDB(connStr, 30*time.Second)
 	if err != nil {
 		return nil, nil, err
