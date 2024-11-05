@@ -21,14 +21,24 @@ func InitDB(dsn string, timeout time.Duration) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// Ping the database to verify the connection
-	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("failed to connect to the database: %w", err)
-	}
+	// Retry connection with a backoff delay until timeout
+	retryInterval := 2 * time.Second
+	for {
+		if err := db.PingContext(ctx); err == nil {
+			DSN = dsn
+			DB = db
+			return db, nil
+		}
 
-	DSN = dsn
-	DB = db
-	return db, nil
+		// Check if the context is done (i.e., timeout reached)
+		if ctx.Err() != nil {
+			return nil, fmt.Errorf("failed to connect to the database after %v: %w", timeout, ctx.Err())
+		}
+
+		// Wait for the retry interval before trying again
+		fmt.Println("Retrying connection to the database...")
+		time.Sleep(retryInterval)
+	}
 }
 
 func CloseDB(db *sql.DB) error {
