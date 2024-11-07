@@ -32,18 +32,41 @@ func InitClerk(env config.EnvVars) {
 	}
 }
 
+// Middleware used for users with missing database record
 func AuthMiddleware(c *fiber.Ctx) error {
 	sessionToken := c.Get("Authorization")
 	sessionToken = strings.TrimPrefix(sessionToken, "Bearer ")
-	err := VerifyToken(c, sessionToken)
+
+	sessClaims, err := client.VerifyToken(sessionToken)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).SendString("unauthorized")
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	// Read clerkID
+	user, err := client.Users().Read(sessClaims.Claims.Subject)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "clerk ID not found"})
+	}
+
+	// Add Clerk user ID to the context
+	c.Locals(ClerkUserIDContext, user.ID)
+
+	return c.Next()
+}
+
+// Middleware used for users who are registered correctly
+func AuthUpdateMiddleware(c *fiber.Ctx) error {
+	sessionToken := c.Get("Authorization")
+	sessionToken = strings.TrimPrefix(sessionToken, "Bearer ")
+	err := VerifyUpdateToken(c, sessionToken)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.Next()
 }
 
-func VerifyToken(c *fiber.Ctx, token string) error {
+func VerifyUpdateToken(c *fiber.Ctx, token string) error {
 	sessClaims, err := client.VerifyToken(token)
 	if err != nil {
 		return errors.New("unauthorized")

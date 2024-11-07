@@ -19,7 +19,7 @@ func WebsocketsMiddleware(c *fiber.Ctx) error {
 
 	// Verify auth token
 	token := data[0]
-	err := VerifyToken(c, token)
+	err := VerifyUpdateToken(c, token)
 	if err != nil {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}

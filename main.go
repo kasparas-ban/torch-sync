@@ -68,7 +68,7 @@ func run(env config.EnvVars) (func(), error) {
 
 func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	// init storage
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", env.DB_USERNAME, env.DB_PASSWORD, env.DB_HOSTNAME, env.DB_PORT, env.DB_NAME)
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", env.DB_USERNAME, env.DB_PASSWORD, env.DB_HOSTNAME, env.DB_NAME)
 	db, err := storage.InitDB(connStr, 30*time.Second)
 	if err != nil {
 		return nil, nil, err
@@ -94,18 +94,18 @@ func buildServer(env config.EnvVars) (*fiber.App, func(), error) {
 	app.Post("/notify", handlers.EmailNotifyHandler)
 	app.Post("/add-user", handlers.AddNewUserHandler)
 	app.Post("/register-user", handlers.RegisterUserHandler)
+	app.Post("/confirm-sign-in", middleware.AuthMiddleware, handlers.ConfirmSignInHandler)
 
 	app.Use("/sync", middleware.WebsocketsMiddleware)
 	app.Get("/sync", websocket.New(handlers.SyncHandler))
 
 	// === Private routes ===
 
-	app.Use(middleware.AuthMiddleware)
+	app.Use(middleware.AuthUpdateMiddleware)
 
 	app.Get("/items", handlers.ItemsHandler)
 	app.Get("/user", handlers.UserHandler)
 	app.Put("/update-user", handlers.UpdateUserHandler)
-	app.Post("/confirm-sign-in", handlers.ConfirmSignInHandler)
 	// app.Put("/update-user-email", handlers.UpdateUserEmailHandler)
 	app.Delete("/delete-user", handlers.DeleteUserHandler)
 
